@@ -8,6 +8,7 @@ import CalendarScreen from './components/screens/CalendarScreen';
 import HomeScreen from './components/screens/HomeScreen';
 import AnalyticsScreen from './components/screens/AnalyticsScreen';
 import SettingsScreen from './components/screens/SettingsScreen';
+import OshiDetailScreen from './components/screens/OshiDetailScreen';
 
 const OshiKakeiboApp = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -174,6 +175,29 @@ const OshiKakeiboApp = () => {
     setShowEditExpense(true);
   };
 
+  const updateOshi = (oshiId, updatedData) => {
+    setOshiList(oshiList.map(oshi => 
+      oshi.id === oshiId ? { ...oshi, ...updatedData } : oshi
+    ));
+    // selectedOshiも更新
+    if (selectedOshi && selectedOshi.id === oshiId) {
+      setSelectedOshi({ ...selectedOshi, ...updatedData });
+    }
+  };
+
+  const deleteOshi = (oshiId) => {
+    // 推しを削除
+    setOshiList(oshiList.filter(oshi => oshi.id !== oshiId));
+    // 関連する支出データも削除
+    setExpenses(expenses.filter(exp => exp.oshiId !== oshiId));
+    // 関連する予算データも削除
+    setBudgets(budgets.filter(budget => budget.oshiId !== oshiId));
+    // selectedOshiをリセット
+    if (selectedOshi && selectedOshi.id === oshiId) {
+      setSelectedOshi(null);
+    }
+  };
+
   const importCSV = (event) => {
     const file = event.target.files[0];
     if (file && file.type === 'text/csv') {
@@ -265,6 +289,42 @@ const OshiKakeiboApp = () => {
     return { totalBudget, totalSpent, percentage };
   };
 
+  const getBudgetUsage = (oshiId, category = null) => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    // カテゴリ別の予算使用率を計算
+    if (category) {
+      const categoryExpenses = expenses.filter(exp => {
+        const expDate = new Date(exp.date);
+        return exp.oshiId === oshiId && 
+               exp.category === category &&
+               expDate.getMonth() === currentMonth &&
+               expDate.getFullYear() === currentYear;
+      });
+      
+      const totalSpent = categoryExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      // カテゴリ別の予算上限を設定（仮の値、実際は設定から取得）
+      const categoryBudgetLimits = {
+        'チケット代': 30000,
+        'グッズ代': 20000,
+        '遠征費': 50000,
+        '配信チケット代': 10000,
+        'カフェ代': 15000,
+        'その他': 10000
+      };
+      
+      const budgetLimit = categoryBudgetLimits[category] || 10000;
+      const percentage = budgetLimit > 0 ? (totalSpent / budgetLimit) * 100 : 0;
+      
+      return { totalBudget: budgetLimit, totalSpent, percentage };
+    }
+    
+    // 全体の予算使用率を返す
+    return getTotalBudgetUsageByOshi(oshiId);
+  };
+
 
   // その他のコンポーネント定義は省略（HomeScreen, AnalyticsScreen, SettingsScreen, etc.）
   // ここでは外部ファイルからインポートすることを前提とします
@@ -345,7 +405,24 @@ const OshiKakeiboApp = () => {
               setSelectedDate={setSelectedDate}
             />
           )}
-          {currentScreen === 'oshi-detail' && <div>Oshi Detail Screen Content</div>}
+          {currentScreen === 'oshi-detail' && (
+            <OshiDetailScreen
+              selectedOshi={selectedOshi}
+              expenses={expenses}
+              oshiList={oshiList}
+              budgets={budgets}
+              getTotalExpensesByOshi={getTotalExpensesByOshi}
+              getBudgetUsage={getBudgetUsage}
+              editExpense={editExpense}
+              deleteExpense={deleteExpense}
+              setSelectedPhoto={setSelectedPhoto}
+              setShowPhotoViewer={setShowPhotoViewer}
+              expenseCategories={expenseCategories}
+              updateOshi={updateOshi}
+              deleteOshi={deleteOshi}
+              setCurrentScreen={setCurrentScreen}
+            />
+          )}
         </div>
       </div>
 
