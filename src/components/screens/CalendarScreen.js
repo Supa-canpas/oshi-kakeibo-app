@@ -11,6 +11,7 @@ const CalendarScreen = ({
   setSelectedDate
 }) => {
   const [selectedCalendarOshi, setSelectedCalendarOshi] = useState(null);
+  const [selectedDateForEvents, setSelectedDateForEvents] = useState(null);
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -59,8 +60,7 @@ const CalendarScreen = ({
   const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
   const handleDateClick = (date) => {
-    setSelectedDate(date);
-    setShowAddEvent(true);
+    setSelectedDateForEvents(date);
   };
 
   // 前の月に移動
@@ -95,19 +95,31 @@ const CalendarScreen = ({
       title: '',
       description: '',
       oshiId: '',
-      date: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      date: selectedDate ? new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000).toISOString().split('T')[0] : selectedDateForEvents ? new Date(selectedDateForEvents.getTime() - selectedDateForEvents.getTimezoneOffset() * 60000).toISOString().split('T')[0] : new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
+      oshiId: selectedCalendarOshi ? selectedCalendarOshi.id.toString() : '',
       type: 'custom'
     });
 
-    // selectedDateが変更されたときにformDataの日付を更新
+    // selectedDateまたはselectedDateForEventsが変更されたときにformDataの日付を更新
     useEffect(() => {
-      if (selectedDate) {
+      const dateToUse = selectedDate || selectedDateForEvents;
+      if (dateToUse) {
         setFormData(prev => ({
           ...prev,
-          date: selectedDate.toISOString().split('T')[0]
+          date: new Date(dateToUse.getTime() - dateToUse.getTimezoneOffset() * 60000).toISOString().split('T')[0]
         }));
       }
-    }, [selectedDate]);
+    }, [selectedDate, selectedDateForEvents]);
+
+    // selectedCalendarOshiが変更されたときにformDataの推しを更新
+    useEffect(() => {
+      if (selectedCalendarOshi) {
+        setFormData(prev => ({
+          ...prev,
+          oshiId: selectedCalendarOshi.id.toString()
+        }));
+      }
+    }, [selectedCalendarOshi]);
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -131,11 +143,12 @@ const CalendarScreen = ({
         setCustomEvents([...customEvents, newEvent]);
         setShowAddEvent(false);
         setSelectedDate(null);
+        setSelectedDateForEvents(null);
         setFormData({
           title: '',
           description: '',
-          oshiId: '',
-          date: new Date().toISOString().split('T')[0],
+          oshiId: selectedCalendarOshi ? selectedCalendarOshi.id.toString() : '',
+          date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
           type: 'custom'
         });
       } else {
@@ -160,6 +173,7 @@ const CalendarScreen = ({
                 e.stopPropagation();
                 setShowAddEvent(false);
                 setSelectedDate(null);
+                setSelectedDateForEvents(null);
               }} 
               className="text-gray-500 hover:text-gray-700 p-1 z-10 relative cursor-pointer"
             >
@@ -225,6 +239,7 @@ const CalendarScreen = ({
                   e.stopPropagation();
                   setShowAddEvent(false);
                   setSelectedDate(null);
+                  setSelectedDateForEvents(null);
                 }}
                 className="flex-1 p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 z-10 relative cursor-pointer"
               >
@@ -246,17 +261,6 @@ const CalendarScreen = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => {
-            setSelectedDate(new Date());
-            setShowAddEvent(true);
-          }}
-          className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl hover:shadow-lg transition-all duration-200"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-      </div>
               {/* 推し選択 */}
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800 mb-3">カレンダー表示</h2>
@@ -365,19 +369,23 @@ const CalendarScreen = ({
                         className={`relative aspect-square rounded-xl p-2 transition-all cursor-pointer ${
                           !isCurrentMonth 
                             ? 'text-gray-300 bg-gray-50' 
-                            : isToday 
-                              ? 'bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 border-2 border-pink-300 shadow-lg transform scale-105' 
-                              : dayEvents.length > 0
-                                ? 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 hover:shadow-md'
-                                : 'bg-gradient-to-br from-gray-50 to-white border border-gray-100 hover:border-purple-200 hover:shadow-sm'
+                            : selectedDateForEvents && selectedDateForEvents.toDateString() === date.toDateString()
+                              ? 'bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 border-2 border-blue-400 shadow-lg transform scale-105'
+                              : isToday 
+                                ? 'bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 border-2 border-pink-300 shadow-lg transform scale-105' 
+                                : dayEvents.length > 0
+                                  ? 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 hover:shadow-md'
+                                  : 'bg-gradient-to-br from-gray-50 to-white border border-gray-100 hover:border-purple-200 hover:shadow-sm'
                         }`}
                       >
                         <div className={`text-center text-sm font-medium ${
-                          isToday 
-                            ? 'text-pink-600 font-bold' 
-                            : isCurrentMonth 
-                              ? dayEvents.length > 0 ? 'text-purple-700' : 'text-gray-700'
-                              : 'text-gray-400'
+                          selectedDateForEvents && selectedDateForEvents.toDateString() === date.toDateString()
+                            ? 'text-blue-600 font-bold'
+                            : isToday 
+                              ? 'text-pink-600 font-bold' 
+                              : isCurrentMonth 
+                                ? dayEvents.length > 0 ? 'text-purple-700' : 'text-gray-700'
+                                : 'text-gray-400'
                         }`}>
                           {date.getDate()}
                         </div>
@@ -417,21 +425,35 @@ const CalendarScreen = ({
               {/* イベント一覧 */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800 mb-4">
-                  {monthNames[currentMonth]}の予定 {selectedCalendarOshi && `(${selectedCalendarOshi.name})`}
+                  {selectedDateForEvents 
+                    ? `${selectedDateForEvents.getMonth() + 1}月${selectedDateForEvents.getDate()}日の予定`
+                    : `${monthNames[currentMonth]}の予定`
+                  } {selectedCalendarOshi && `(${selectedCalendarOshi.name})`}
                 </h2>
                 
-                {events.filter(event => event.month === currentMonth).length === 0 ? (
+                {events.filter(event => 
+                  selectedDateForEvents 
+                    ? event.date === selectedDateForEvents.getDate() && event.month === selectedDateForEvents.getMonth()
+                    : event.month === currentMonth
+                ).length === 0 ? (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-3 text-gray-400">📅</div>
                     <p className="text-gray-500 font-medium">
-                      {monthNames[currentMonth]}は予定がありません
+                      {selectedDateForEvents 
+                        ? `${selectedDateForEvents.getMonth() + 1}月${selectedDateForEvents.getDate()}日は予定がありません`
+                        : `${monthNames[currentMonth]}は予定がありません`
+                      }
                     </p>
-                    <p className="text-sm text-gray-400 mt-1">右上の＋ボタンから予定を追加できます</p>
+                    <p className="text-sm text-gray-400 mt-1">右下の＋ボタンから予定を追加できます</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {events
-                      .filter(event => event.month === currentMonth)
+                      .filter(event => 
+                        selectedDateForEvents 
+                          ? event.date === selectedDateForEvents.getDate() && event.month === selectedDateForEvents.getMonth()
+                          : event.month === currentMonth
+                      )
                       .sort((a, b) => a.date - b.date)
                       .map((event, index) => (
                         <div 
@@ -491,6 +513,23 @@ const CalendarScreen = ({
                   </div>
                 </div>
               </div>
+        
+      {/* フローティングアクションボタン */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (selectedDateForEvents) {
+            setSelectedDate(selectedDateForEvents);
+          } else {
+            setSelectedDate(new Date());
+          }
+          setShowAddEvent(true);
+        }}
+        className="fixed bottom-24 right-6 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl shadow-xl hover:shadow-2xl hover:scale-110 flex items-center justify-center z-50 touch-manipulation transition-all duration-200"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
         
       {/* AddEventFormをここに表示 */}
       {showAddEvent && <AddEventForm />}

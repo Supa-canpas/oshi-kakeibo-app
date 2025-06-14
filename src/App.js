@@ -21,8 +21,8 @@ const OshiKakeiboApp = () => {
     { id: 3, amount: 12000, date: '2025-06-05', category: '遠征費', oshiId: 1, note: '交通費・宿泊費', photo: null }
   ]);
   const [budgets, setBudgets] = useState([
-    { id: 1, oshiId: 1, category: 'グッズ代', amount: 10000, period: '月次' },
-    { id: 2, oshiId: 2, category: 'チケット代', amount: 15000, period: '月次' }
+    { id: 1, oshiId: 1, amount: 10000, period: '毎月' },
+    { id: 2, oshiId: 2, amount: 15000, period: '毎月' }
   ]);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddOshi, setShowAddOshi] = useState(false);
@@ -38,14 +38,15 @@ const OshiKakeiboApp = () => {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [customEvents, setCustomEvents] = useState([]);
-  const [notificationSettings] = useState({
+  const [notificationSettings, setNotificationSettings] = useState({
     budgetAlert: true,
     birthdayReminder: true
   });
 
   const expenseCategories = ['チケット代', 'グッズ代', '遠征費', '配信チケット代', 'カフェ代', 'その他'];
   const genres = ['アイドル', 'VTuber', 'アニメ', '俳優', '鉄道', 'ゲーム', 'その他'];
-  const colors = ['#FF69B4', '#87CEEB', '#98FB98', '#FFB6C1', '#DDA0DD', '#F0E68C', '#FF7F50', '#40E0D0'];
+  const [availableIcons, setAvailableIcons] = useState(['🎭', '⭐', '🎤', '💕', '🌟', '🎵', '🎨', '💎']);
+  const [availableColors, setAvailableColors] = useState(['#FF69B4', '#87CEEB', '#98FB98', '#FFB6C1', '#DDA0DD', '#F0E68C', '#FF7F50', '#40E0D0']);
   const themes = {
     default: { primary: '#FF69B4', secondary: '#87CEEB', accent: '#98FB98' },
     pink: { primary: '#FF1493', secondary: '#FFB6C1', accent: '#FFC0CB' },
@@ -54,7 +55,7 @@ const OshiKakeiboApp = () => {
     green: { primary: '#32CD32', secondary: '#98FB98', accent: '#F0FFF0' }
   };
 
-  // 予算超過チェック
+  // 予算超過チェックと月次処理
   useEffect(() => {
     if (!notificationSettings.budgetAlert) return;
     
@@ -64,30 +65,81 @@ const OshiKakeiboApp = () => {
     const newNotifications = [];
     
     budgets.forEach(budget => {
+      // アラートは毎月予算と今月の臨時イベント予算も表示
+      let shouldCheck = false;
+      if (budget.period === '毎月') {
+        shouldCheck = true;
+      } else if (budget.period === '臨時イベント') {
+        const budgetCreatedAt = new Date(budget.createdAt || Date.now());
+        shouldCheck = budgetCreatedAt.getMonth() === currentMonth && 
+                     budgetCreatedAt.getFullYear() === currentYear;
+      }
+      
+      if (!shouldCheck) return;
+      
       const monthlyExpenses = expenses.filter(exp => {
         const expDate = new Date(exp.date);
         return exp.oshiId === budget.oshiId && 
-               exp.category === budget.category &&
                expDate.getMonth() === currentMonth &&
                expDate.getFullYear() === currentYear;
       });
       
+      // 同じ推しの全ての対象予算を合計
+      const oshiBudgets = budgets.filter(b => {
+        if (b.oshiId !== budget.oshiId) return false;
+        if (b.period === '毎月') return true;
+        if (b.period === '臨時イベント') {
+          const bCreatedAt = new Date(b.createdAt || Date.now());
+          return bCreatedAt.getMonth() === currentMonth && 
+                 bCreatedAt.getFullYear() === currentYear;
+        }
+        return false;
+      });
+      
+      const totalBudget = oshiBudgets.reduce((sum, b) => sum + b.amount, 0);
       const totalSpent = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-      const percentage = (totalSpent / budget.amount) * 100;
+      const percentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
       
       if (percentage >= 80) {
         const oshi = oshiList.find(o => o.id === budget.oshiId);
-        newNotifications.push({
-          id: `budget-${budget.id}`,
-          type: percentage >= 100 ? 'over' : 'warning',
-          message: `${oshi?.name}の${budget.category}が予算の${Math.round(percentage)}%に達しました`,
-          oshi: oshi
-        });
+        const existingNotification = newNotifications.find(n => n.id === `budget-${budget.oshiId}`);
+        
+        if (!existingNotification) {
+          newNotifications.push({
+            id: `budget-${budget.oshiId}`,
+            type: percentage >= 100 ? 'over' : 'warning',
+            message: `${oshi?.name}の予算が${Math.round(percentage)}%に達しました`,
+            oshi: oshi
+          });
+        }
       }
     });
     
-    setNotifications(newNotifications);
+    // 既存の誕生日通知を保持して、予算通知を更新
+    setNotifications(prev => {
+      const birthdayNotifications = prev.filter(n => n.type === 'birthday');
+      return [...birthdayNotifications, ...newNotifications];
+    });
   }, [expenses, budgets, oshiList, notificationSettings.budgetAlert]);
+
+  // 月替わり時の臨時イベント予算削除
+  useEffect(() => {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    // 前月以前の臨時イベント予算を削除
+    const filteredBudgets = budgets.filter(budget => {
+      if (budget.period !== '臨時イベント') return true;
+      
+      const budgetCreatedAt = new Date(budget.createdAt || Date.now());
+      return budgetCreatedAt.getMonth() === currentMonth && 
+             budgetCreatedAt.getFullYear() === currentYear;
+    });
+    
+    if (filteredBudgets.length !== budgets.length) {
+      setBudgets(filteredBudgets);
+    }
+  }, [budgets, setBudgets]);
 
   // 誕生日通知チェック
   useEffect(() => {
@@ -177,7 +229,22 @@ const OshiKakeiboApp = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
-    const oshiBudgets = budgets.filter(b => b.oshiId === oshiId);
+    // 毎月予算と今月作成された臨時イベント予算を対象とする
+    const oshiBudgets = budgets.filter(b => {
+      if (b.oshiId !== oshiId) return false;
+      
+      if (b.period === '毎月') {
+        return true;
+      }
+      
+      if (b.period === '臨時イベント') {
+        const budgetCreatedAt = new Date(b.createdAt || Date.now());
+        return budgetCreatedAt.getMonth() === currentMonth && 
+               budgetCreatedAt.getFullYear() === currentYear;
+      }
+      
+      return false;
+    });
     
     if (oshiBudgets.length === 0) {
       return { totalBudget: 0, totalSpent: 0, percentage: 0 };
@@ -198,26 +265,6 @@ const OshiKakeiboApp = () => {
     return { totalBudget, totalSpent, percentage };
   };
 
-  const getBudgetUsage = (oshiId, category) => {
-    const budget = budgets.find(b => b.oshiId === oshiId && b.category === category);
-    if (!budget) return { spent: 0, budget: 0, percentage: 0 };
-    
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
-    const monthlyExpenses = expenses.filter(exp => {
-      const expDate = new Date(exp.date);
-      return exp.oshiId === oshiId && 
-             exp.category === category &&
-             expDate.getMonth() === currentMonth &&
-             expDate.getFullYear() === currentYear;
-    });
-    
-    const spent = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-    const percentage = (spent / budget.amount) * 100;
-    
-    return { spent, budget: budget.amount, percentage };
-  };
 
   // その他のコンポーネント定義は省略（HomeScreen, AnalyticsScreen, SettingsScreen, etc.）
   // ここでは外部ファイルからインポートすることを前提とします
@@ -227,28 +274,14 @@ const OshiKakeiboApp = () => {
       {/* ヘッダー */}
       <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-100 fixed top-0 left-0 right-0 z-40">
         <div className="max-w-md mx-auto px-6 py-5">
-          <div className="flex items-center justify-between">
-            {currentScreen !== 'home' && (
-              <button
-                onClick={() => {
-                  if (currentScreen === 'oshi-detail') {
-                    setSelectedOshi(null);
-                  }
-                  setCurrentScreen('home');
-                }}
-                className="text-gray-700 hover:text-gray-900 z-10 relative font-medium"
-              >
-                ← 戻る
-              </button>
-            )}
-            <h1 className="text-2xl font-bold text-gray-900 flex-1 text-center">
+          <div className="flex items-center justify-center">
+            <h1 className="text-2xl font-bold text-gray-900">
               {currentScreen === 'home' && '推し活家計簿'}
               {currentScreen === 'analytics' && '分析・レポート'}
               {currentScreen === 'settings' && '設定'}
               {currentScreen === 'calendar' && '推しカレンダー'}
               {currentScreen === 'oshi-detail' && selectedOshi?.name}
             </h1>
-            <div className="w-8"></div>
           </div>
         </div>
       </div>
@@ -294,6 +327,11 @@ const OshiKakeiboApp = () => {
               setAppTheme={setAppTheme}
               themes={themes}
               notificationSettings={notificationSettings}
+              setNotificationSettings={setNotificationSettings}
+              availableIcons={availableIcons}
+              setAvailableIcons={setAvailableIcons}
+              availableColors={availableColors}
+              setAvailableColors={setAvailableColors}
             />
           )}
           {currentScreen === 'calendar' && (
@@ -399,7 +437,8 @@ const OshiKakeiboApp = () => {
           oshiList={oshiList}
           setOshiList={setOshiList}
           setShowAddOshi={setShowAddOshi}
-          colors={colors}
+          colors={availableColors}
+          icons={availableIcons}
           genres={genres}
         />
       )}
@@ -416,7 +455,7 @@ const OshiKakeiboApp = () => {
       
       {showEditExpense && editingExpense && (
         <EditExpenseForm
-          expense={editingExpense}
+          editingExpense={editingExpense}
           expenses={expenses}
           setExpenses={setExpenses}
           oshiList={oshiList}

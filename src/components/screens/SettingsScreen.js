@@ -12,7 +12,12 @@ const SettingsScreen = ({
   appTheme,
   setAppTheme,
   themes,
-  notificationSettings
+  notificationSettings,
+  setNotificationSettings,
+  availableIcons,
+  setAvailableIcons,
+  availableColors,
+  setAvailableColors
 }) => {
   const handleExportData = () => {
     const data = {
@@ -85,6 +90,13 @@ const SettingsScreen = ({
         <div className="space-y-3">
           {budgets.map(budget => {
             const oshi = oshiList.find(o => o.id === budget.oshiId);
+            let displayPeriod = budget.period;
+            
+            if (budget.period === '臨時イベント' && budget.createdAt) {
+              const createdDate = new Date(budget.createdAt);
+              displayPeriod = `臨時イベント${createdDate.getFullYear()}年${createdDate.getMonth() + 1}月`;
+            }
+            
             return (
               <div key={budget.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
@@ -96,12 +108,11 @@ const SettingsScreen = ({
                   </div>
                   <div>
                     <div className="font-medium text-gray-800">{oshi?.name}</div>
-                    <div className="text-sm text-gray-600">{budget.category}</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-gray-800">¥{budget.amount.toLocaleString()}</div>
-                  <div className="text-xs text-gray-500">{budget.period}</div>
+                  <div className="text-xs text-gray-500">{displayPeriod}</div>
                 </div>
               </div>
             );
@@ -110,6 +121,7 @@ const SettingsScreen = ({
       </div>
 
       {/* データ管理 */}
+      {/*
       <div className="bg-white rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-bold text-gray-800 mb-4">データ管理</h2>
         <div className="space-y-3">
@@ -141,8 +153,10 @@ const SettingsScreen = ({
           </button>
         </div>
       </div>
+      */}
 
       {/* テーマ設定 */}
+      {/*
       <div className="bg-white rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-bold text-gray-800 mb-4">テーマ設定</h2>
         <div className="grid grid-cols-3 gap-3">
@@ -165,6 +179,81 @@ const SettingsScreen = ({
           ))}
         </div>
       </div>
+      */}
+
+      {/* アイコン・カラー設定 */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm relative">
+        <h2 className="text-lg font-bold text-gray-800 mb-4">推しアイコン・カラー設定</h2>
+        
+        {/* アイコン設定 */}
+        <div className="mb-6 relative">
+          <h3 className="text-md font-medium text-gray-700 mb-3">アイコン選択肢</h3>
+          <div className="grid grid-cols-4 gap-2 mb-3">
+            {availableIcons.map((icon, index) => (
+              <div key={index} className="relative">
+                <input
+                  type="text"
+                  value={icon}
+                  onChange={(e) => {
+                    const newIcons = [...availableIcons];
+                    newIcons[index] = e.target.value;
+                    setAvailableIcons(newIcons);
+                  }}
+                  className="w-full p-3 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="絵文字"
+                />
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-gray-500">※ 絵文字を直接入力してください</p>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setAvailableIcons([...availableIcons, '🎀']);
+            }}
+            className="absolute bottom-0 right-0 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 z-10"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+        
+        {/* カラー設定 */}
+        <div className="relative">
+          <h3 className="text-md font-medium text-gray-700 mb-3">カラー選択肢</h3>
+          <div className="grid grid-cols-4 gap-2">
+            {availableColors.map((color, index) => (
+              <div key={index} className="relative">
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(e) => {
+                    const newColors = [...availableColors];
+                    newColors[index] = e.target.value;
+                    setAvailableColors(newColors);
+                  }}
+                  className="w-full h-12 border-2 border-gray-300 rounded-lg cursor-pointer"
+                />
+                <div 
+                  className="absolute inset-0 rounded-lg border-2 border-gray-300 pointer-events-none"
+                  style={{ backgroundColor: color }}
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setAvailableColors([...availableColors, '#ff69b4']);
+            }}
+            className="absolute bottom-0 right-0 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 z-10"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+        
+      </div>
 
       {/* 通知設定 */}
       <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -175,9 +264,19 @@ const SettingsScreen = ({
               <Bell className="w-5 h-5 text-gray-600" />
               <span className="text-gray-700">予算超過アラート</span>
             </div>
-            <div className="w-12 h-6 bg-green-500 rounded-full relative">
-              <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5"></div>
-            </div>
+            <button
+              onClick={() => setNotificationSettings({
+                ...notificationSettings,
+                budgetAlert: !notificationSettings.budgetAlert
+              })}
+              className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${
+                notificationSettings.budgetAlert ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200 ${
+                notificationSettings.budgetAlert ? 'right-0.5' : 'left-0.5'
+              }`}></div>
+            </button>
           </div>
           
           <div className="flex items-center justify-between">
@@ -185,9 +284,19 @@ const SettingsScreen = ({
               <Calendar className="w-5 h-5 text-gray-600" />
               <span className="text-gray-700">推しの誕生日リマインド</span>
             </div>
-            <div className="w-12 h-6 bg-green-500 rounded-full relative">
-              <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5"></div>
-            </div>
+            <button
+              onClick={() => setNotificationSettings({
+                ...notificationSettings,
+                birthdayReminder: !notificationSettings.birthdayReminder
+              })}
+              className={`w-12 h-6 rounded-full relative transition-colors duration-200 ${
+                notificationSettings.birthdayReminder ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+            >
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform duration-200 ${
+                notificationSettings.birthdayReminder ? 'right-0.5' : 'left-0.5'
+              }`}></div>
+            </button>
           </div>
         </div>
       </div>

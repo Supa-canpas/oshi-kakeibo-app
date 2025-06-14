@@ -5,15 +5,24 @@ const AddOshiForm = ({
   setOshiList,
   setShowAddOshi,
   colors,
+  icons,
   genres
 }) => {
   const [formData, setFormData] = useState({
     name: '',
     genre: '',
     color: colors[0],
-    icon: '⭐',
-    birthday: ''
+    icon: icons[0],
+    birthdayMonth: '',
+    birthdayDay: ''
   });
+
+  const [showIconSelector, setShowIconSelector] = useState(false);
+  const [showColorSelector, setShowColorSelector] = useState(false);
+  const [tempIcon, setTempIcon] = useState(icons[0]);
+  const [tempColor, setTempColor] = useState(colors[0]);
+
+  const allIcons = ['⭐', '🎭', '🎤', '🚀', '🌟', '💎', '🎨', '🎪', '🎸', '🎬'];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -22,9 +31,16 @@ const AddOshiForm = ({
     console.log('Form submitted with data:', formData);
     
     if (formData.name && formData.genre) {
+      const birthday = formData.birthdayMonth && formData.birthdayDay 
+        ? `${formData.birthdayMonth.padStart(2, '0')}-${formData.birthdayDay.padStart(2, '0')}`
+        : '';
       const newOshi = {
         id: Date.now(),
-        ...formData
+        name: formData.name,
+        genre: formData.genre,
+        color: formData.color,
+        icon: formData.icon,
+        birthday: birthday
       };
       console.log('Adding new oshi:', newOshi);
       
@@ -34,8 +50,9 @@ const AddOshiForm = ({
         name: '',
         genre: '',
         color: colors[0],
-        icon: '⭐',
-        birthday: ''
+        icon: icons[0],
+        birthdayMonth: '',
+        birthdayDay: ''
       });
     } else {
       console.log('Validation failed:', { name: formData.name, genre: formData.genre });
@@ -50,7 +67,6 @@ const AddOshiForm = ({
     handleSubmit(e);
   };
 
-  const iconOptions = ['⭐', '🎭', '🎤', '🚀', '🌟', '💎', '🎨', '🎪', '🎸', '🎬'];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={(e) => e.stopPropagation()}>
@@ -100,49 +116,89 @@ const AddOshiForm = ({
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">アイコン</label>
-              <div className="grid grid-cols-5 gap-2">
-                {iconOptions.map(icon => (
-                  <button
-                    key={icon}
-                    type="button"
-                    onClick={() => setFormData({...formData, icon})}
-                    className={`p-3 text-2xl rounded-lg border-2 ${
-                      formData.icon === icon 
-                        ? 'border-pink-500 bg-pink-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {icon}
-                  </button>
-                ))}
+              <div className="relative">
+                <div className="grid grid-cols-5 gap-2">
+                  {allIcons.map(icon => (
+                    <button
+                      key={icon}
+                      type="button"
+                      onClick={() => setFormData({...formData, icon})}
+                      className={`p-3 text-2xl rounded-lg border-2 ${
+                        formData.icon === icon 
+                          ? 'border-pink-500 bg-pink-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      {icon}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempIcon(formData.icon);
+                    setShowIconSelector(true);
+                  }}
+                  className="absolute bottom-0 right-0 w-6 h-6 bg-pink-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-pink-600"
+                >
+                  +
+                </button>
               </div>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">イメージカラー</label>
-              <div className="grid grid-cols-4 gap-2">
-                {colors.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setFormData({...formData, color})}
-                    className={`w-full h-12 rounded-lg border-4 ${
-                      formData.color === color ? 'border-gray-800' : 'border-gray-200'
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+              <div className="relative">
+                <div className="grid grid-cols-4 gap-2">
+                  {colors.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setFormData({...formData, color})}
+                      className={`w-full h-12 rounded-lg border-4 ${
+                        formData.color === color ? 'border-gray-800' : 'border-gray-200'
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempColor(formData.color);
+                    setShowColorSelector(true);
+                  }}
+                  className="absolute bottom-0 right-0 w-6 h-6 bg-pink-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-pink-600"
+                >
+                  +
+                </button>
               </div>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">誕生日</label>
-              <input
-                type="date"
-                value={formData.birthday}
-                onChange={(e) => setFormData({...formData, birthday: e.target.value})}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
+              <div className="flex gap-2">
+                <select
+                  value={formData.birthdayMonth}
+                  onChange={(e) => setFormData({...formData, birthdayMonth: e.target.value})}
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                >
+                  <option value="">月</option>
+                  {Array.from({length: 12}, (_, i) => i + 1).map(month => (
+                    <option key={month} value={month}>{month}月</option>
+                  ))}
+                </select>
+                <select
+                  value={formData.birthdayDay}
+                  onChange={(e) => setFormData({...formData, birthdayDay: e.target.value})}
+                  className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                >
+                  <option value="">日</option>
+                  {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                    <option key={day} value={day}>{day}日</option>
+                  ))}
+                </select>
+              </div>
             </div>
             
             <div className="flex gap-3 pt-4">
@@ -168,6 +224,91 @@ const AddOshiForm = ({
           </form>
         </div>
       </div>
+      
+      {/* アイコン選択モーダル */}
+      {showIconSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">アイコンを選択</h3>
+            <div className="grid grid-cols-5 gap-3 mb-6">
+              {allIcons.map(icon => (
+                <button
+                  key={icon}
+                  type="button"
+                  onClick={() => setTempIcon(icon)}
+                  className={`p-3 text-2xl rounded-lg border-2 ${
+                    tempIcon === icon 
+                      ? 'border-pink-500 bg-pink-50' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowIconSelector(false)}
+                className="flex-1 p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({...formData, icon: tempIcon});
+                  setShowIconSelector(false);
+                }}
+                className="flex-1 p-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600"
+              >
+                決定
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* カラー選択モーダル */}
+      {showColorSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">カラーを選択</h3>
+            <div className="grid grid-cols-4 gap-3 mb-6">
+              {colors.map(color => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setTempColor(color)}
+                  className={`w-full h-12 rounded-lg border-4 ${
+                    tempColor === color ? 'border-gray-800' : 'border-gray-200'
+                  }`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowColorSelector(false)}
+                className="flex-1 p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({...formData, color: tempColor});
+                  setShowColorSelector(false);
+                }}
+                className="flex-1 p-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600"
+              >
+                決定
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
