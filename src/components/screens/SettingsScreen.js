@@ -198,7 +198,7 @@ const SettingsScreen = ({
         <div className="space-y-2 text-sm text-gray-600">
           <div>バージョン: 1.0.0</div>
           <div>作成日: 2025年6月13日</div>
-          <div>開発者: お姉様</div>
+          <div>開発者: Supa-canpas</div>
         </div>
       </div>
     </div>

@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Heart, BarChart3, Settings, Calendar, Camera, Trash2, Edit, Share2, Download, Upload, Bell, TrendingUp, AlertTriangle } from 'lucide-react';
 import AddExpenseForm from './components/forms/AddExpenseForm';
 import AddBudgetForm from './components/forms/AddBudgetForm';
+import AddOshiForm from './components/forms/AddOshiForm';
 import EditExpenseForm from './components/forms/EditExpenseForm';
 import CalendarScreen from './components/screens/CalendarScreen';
+import HomeScreen from './components/screens/HomeScreen';
+import AnalyticsScreen from './components/screens/AnalyticsScreen';
+import SettingsScreen from './components/screens/SettingsScreen';
 
 const OshiKakeiboApp = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -252,9 +256,46 @@ const OshiKakeiboApp = () => {
       {/* メインコンテンツ */}
       <div className="max-w-md mx-auto px-4 py-6 pb-24 pt-20 min-h-screen">
         <div className="space-y-6">
-          {currentScreen === 'home' && <div>Home Screen Content</div>}
-          {currentScreen === 'analytics' && <div>Analytics Screen Content</div>}
-          {currentScreen === 'settings' && <div>Settings Screen Content</div>}
+          {currentScreen === 'home' && (
+            <HomeScreen
+              expenses={expenses}
+              oshiList={oshiList}
+              budgets={budgets}
+              notifications={notifications}
+              setSelectedOshi={setSelectedOshi}
+              setCurrentScreen={setCurrentScreen}
+              setShowAddOshi={setShowAddOshi}
+              editExpense={editExpense}
+              deleteExpense={deleteExpense}
+              setSelectedPhoto={setSelectedPhoto}
+              setShowPhotoViewer={setShowPhotoViewer}
+              getTotalExpensesByOshi={getTotalExpensesByOshi}
+              getTotalBudgetUsageByOshi={getTotalBudgetUsageByOshi}
+            />
+          )}
+          {currentScreen === 'analytics' && (
+            <AnalyticsScreen
+              expenses={expenses}
+              oshiList={oshiList}
+              getTotalExpensesByOshi={getTotalExpensesByOshi}
+              expenseCategories={expenseCategories}
+            />
+          )}
+          {currentScreen === 'settings' && (
+            <SettingsScreen
+              oshiList={oshiList}
+              expenses={expenses}
+              budgets={budgets}
+              setShowAddBudget={setShowAddBudget}
+              exportData={null}
+              shareReport={null}
+              importCSV={importCSV}
+              appTheme={appTheme}
+              setAppTheme={setAppTheme}
+              themes={themes}
+              notificationSettings={notificationSettings}
+            />
+          )}
           {currentScreen === 'calendar' && (
             <CalendarScreen
               oshiList={oshiList}
@@ -340,7 +381,50 @@ const OshiKakeiboApp = () => {
       </div>
 
       {/* モーダル */}
-      {/* モーダルコンポーネントは必要に応じて追加 */}
+      {showAddExpense && (
+        <AddExpenseForm
+          expenses={expenses}
+          setExpenses={setExpenses}
+          oshiList={oshiList}
+          expenseCategories={expenseCategories}
+          setShowAddExpense={setShowAddExpense}
+          setShowCamera={setShowCamera}
+          setSelectedPhoto={setSelectedPhoto}
+          setShowPhotoViewer={setShowPhotoViewer}
+        />
+      )}
+      
+      {showAddOshi && (
+        <AddOshiForm
+          oshiList={oshiList}
+          setOshiList={setOshiList}
+          setShowAddOshi={setShowAddOshi}
+          colors={colors}
+          genres={genres}
+        />
+      )}
+      
+      {showAddBudget && (
+        <AddBudgetForm
+          budgets={budgets}
+          setBudgets={setBudgets}
+          oshiList={oshiList}
+          expenseCategories={expenseCategories}
+          setShowAddBudget={setShowAddBudget}
+        />
+      )}
+      
+      {showEditExpense && editingExpense && (
+        <EditExpenseForm
+          expense={editingExpense}
+          expenses={expenses}
+          setExpenses={setExpenses}
+          oshiList={oshiList}
+          expenseCategories={expenseCategories}
+          setShowEditExpense={setShowEditExpense}
+          setEditingExpense={setEditingExpense}
+        />
+      )}
     </div>
   );
 };
