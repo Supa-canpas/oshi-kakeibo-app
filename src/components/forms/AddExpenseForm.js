@@ -12,7 +12,7 @@ const AddExpenseForm = ({
 }) => {
   const [formData, setFormData] = useState({
     amount: '',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
     category: '',
     oshiId: '',
     note: '',
@@ -41,7 +41,7 @@ const AddExpenseForm = ({
       setShowAddExpense(false);
       setFormData({
         amount: '',
-        date: new Date().toISOString().split('T')[0],
+        date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
         category: '',
         oshiId: '',
         note: '',

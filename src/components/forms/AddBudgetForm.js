@@ -9,9 +9,8 @@ const AddBudgetForm = ({
 }) => {
   const [formData, setFormData] = useState({
     oshiId: '',
-    category: '',
     amount: '',
-    period: '月次'
+    period: '毎月'
   });
 
   const handleSubmit = (e) => {
@@ -20,23 +19,45 @@ const AddBudgetForm = ({
     
     console.log('Budget form submitted with data:', formData); // デバッグ用
     
-    if (formData.oshiId && formData.category && formData.amount) {
-      const newBudget = {
-        id: Date.now(),
-        oshiId: parseInt(formData.oshiId),
-        category: formData.category,
-        amount: parseInt(formData.amount),
-        period: formData.period
-      };
-      console.log('Adding new budget:', newBudget); // デバッグ用
+    if (formData.oshiId && formData.amount) {
+      const oshiId = parseInt(formData.oshiId);
+      const amount = parseInt(formData.amount);
+      const period = formData.period;
       
-      setBudgets([...budgets, newBudget]);
+      // 同じ推しの同じ期間の予算が既に存在するかチェック
+      const existingBudgetIndex = budgets.findIndex(
+        budget => budget.oshiId === oshiId && budget.period === period
+      );
+      
+      let updatedBudgets;
+      
+      if (existingBudgetIndex !== -1) {
+        // 既存の予算がある場合、金額を統合
+        updatedBudgets = [...budgets];
+        updatedBudgets[existingBudgetIndex] = {
+          ...updatedBudgets[existingBudgetIndex],
+          amount: updatedBudgets[existingBudgetIndex].amount + amount
+        };
+      } else {
+        // 新しい予算を追加
+        const newBudget = {
+          id: Date.now(),
+          oshiId: oshiId,
+          amount: amount,
+          period: period,
+          createdAt: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString()
+        };
+        updatedBudgets = [...budgets, newBudget];
+      }
+      
+      console.log('Updated budgets:', updatedBudgets); // デバッグ用
+      
+      setBudgets(updatedBudgets);
       setShowAddBudget(false);
       setFormData({
         oshiId: '',
-        category: '',
         amount: '',
-        period: '月次'
+        period: '毎月'
       });
     } else {
       console.log('Budget validation failed:', formData); // デバッグ用
@@ -84,20 +105,6 @@ const AddBudgetForm = ({
             </select>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">カテゴリ</label>
-            <select 
-              value={formData.category} 
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              required
-            >
-              <option value="">カテゴリを選択</option>
-              {expenseCategories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-          </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">予算金額</label>
@@ -118,8 +125,8 @@ const AddBudgetForm = ({
               onChange={(e) => setFormData({...formData, period: e.target.value})}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
-              <option value="月次">月次</option>
-              <option value="イベント">イベント</option>
+              <option value="毎月">毎月</option>
+              <option value="臨時イベント">臨時イベント{new Date().getFullYear()}年{new Date().getMonth() + 1}月</option>
             </select>
           </div>
           

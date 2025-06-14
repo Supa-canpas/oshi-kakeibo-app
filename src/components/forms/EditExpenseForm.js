@@ -14,8 +14,7 @@ const EditExpenseForm = ({
     date: editingExpense?.date || '',
     category: editingExpense?.category || '',
     oshiId: editingExpense?.oshiId?.toString() || '',
-    note: editingExpense?.note || '',
-    photo: editingExpense?.photo || null
+    note: editingExpense?.note || ''
   });
 
   const handleSubmit = (e) => {
@@ -27,28 +26,17 @@ const EditExpenseForm = ({
         date: formData.date,
         category: formData.category,
         oshiId: parseInt(formData.oshiId),
-        note: formData.note,
-        photo: formData.photo
+        note: formData.note
       };
       
       setExpenses(expenses.map(exp => 
-        exp.id === editingExpense.id ? updatedExpense : exp
+        exp.id === editingExpense?.id ? updatedExpense : exp
       ));
       setShowEditExpense(false);
       setEditingExpense(null);
     }
   };
 
-  const handlePhotoUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData({...formData, photo: e.target.result});
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -125,34 +113,6 @@ const EditExpenseForm = ({
             />
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">写真</label>
-            <label className="w-full p-3 border border-gray-300 rounded-lg text-center cursor-pointer hover:bg-gray-50 block">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
-              📁 写真を変更
-            </label>
-            {formData.photo && (
-              <div className="mt-2 relative">
-                <img 
-                  src={formData.photo} 
-                  alt="レシート" 
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <button
-                  type="button"
-                  onClick={() => setFormData({...formData, photo: null})}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-          </div>
           
           <div className="flex gap-3 pt-4">
             <button
