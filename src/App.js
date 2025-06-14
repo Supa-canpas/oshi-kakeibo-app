@@ -9,6 +9,7 @@ import HomeScreen from './components/screens/HomeScreen';
 import AnalyticsScreen from './components/screens/AnalyticsScreen';
 import SettingsScreen from './components/screens/SettingsScreen';
 import OshiDetailScreen from './components/screens/OshiDetailScreen';
+import { Analytics } from "@vercel/analytics/react";
 
 const OshiKakeiboApp = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -541,6 +542,9 @@ const OshiKakeiboApp = () => {
           setEditingExpense={setEditingExpense}
         />
       )}
+
+      <Analytics />
+
     </div>
   );
 };
