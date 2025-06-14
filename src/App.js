@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Heart, BarChart3, Settings, Calendar, Camera, Trash2, Edit, Share2, Download, Upload, Bell, TrendingUp, AlertTriangle } from 'lucide-react';
 import AddExpenseForm from './components/forms/AddExpenseForm';
 import AddBudgetForm from './components/forms/AddBudgetForm';
+import AddOshiForm from './components/forms/AddOshiForm';
 import EditExpenseForm from './components/forms/EditExpenseForm';
 import CalendarScreen from './components/screens/CalendarScreen';
 import HomeScreen from './components/screens/HomeScreen';
@@ -380,7 +381,50 @@ const OshiKakeiboApp = () => {
       </div>
 
       {/* モーダル */}
-      {/* モーダルコンポーネントは必要に応じて追加 */}
+      {showAddExpense && (
+        <AddExpenseForm
+          expenses={expenses}
+          setExpenses={setExpenses}
+          oshiList={oshiList}
+          expenseCategories={expenseCategories}
+          setShowAddExpense={setShowAddExpense}
+          setShowCamera={setShowCamera}
+          setSelectedPhoto={setSelectedPhoto}
+          setShowPhotoViewer={setShowPhotoViewer}
+        />
+      )}
+      
+      {showAddOshi && (
+        <AddOshiForm
+          oshiList={oshiList}
+          setOshiList={setOshiList}
+          setShowAddOshi={setShowAddOshi}
+          colors={colors}
+          genres={genres}
+        />
+      )}
+      
+      {showAddBudget && (
+        <AddBudgetForm
+          budgets={budgets}
+          setBudgets={setBudgets}
+          oshiList={oshiList}
+          expenseCategories={expenseCategories}
+          setShowAddBudget={setShowAddBudget}
+        />
+      )}
+      
+      {showEditExpense && editingExpense && (
+        <EditExpenseForm
+          expense={editingExpense}
+          expenses={expenses}
+          setExpenses={setExpenses}
+          oshiList={oshiList}
+          expenseCategories={expenseCategories}
+          setShowEditExpense={setShowEditExpense}
+          setEditingExpense={setEditingExpense}
+        />
+      )}
     </div>
   );
 };
