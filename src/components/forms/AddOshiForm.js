@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import IconSelector from './IconSelector';
+import ColorSelector from './ColorSelector';
 
 const AddOshiForm = ({
   oshiList,
@@ -19,10 +21,6 @@ const AddOshiForm = ({
 
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [showColorSelector, setShowColorSelector] = useState(false);
-  const [tempIcon, setTempIcon] = useState(icons[0]);
-  const [tempColor, setTempColor] = useState(colors[0]);
-
-  const allIcons = ['⭐', '🎭', '🎤', '🚀', '🌟', '💎', '🎨', '🎪', '🎸', '🎬'];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -118,7 +116,7 @@ const AddOshiForm = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">アイコン</label>
               <div className="relative">
                 <div className="grid grid-cols-5 gap-2">
-                  {allIcons.map(icon => (
+                  {icons.map(icon => (
                     <button
                       key={icon}
                       type="button"
@@ -133,16 +131,13 @@ const AddOshiForm = ({
                     </button>
                   ))}
                 </div>
-                <button
+                {/* <button
                   type="button"
-                  onClick={() => {
-                    setTempIcon(formData.icon);
-                    setShowIconSelector(true);
-                  }}
+                  onClick={() => setShowIconSelector(true)}
                   className="absolute bottom-0 right-0 w-6 h-6 bg-pink-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-pink-600"
                 >
                   +
-                </button>
+                </button> */}
               </div>
             </div>
             
@@ -162,16 +157,13 @@ const AddOshiForm = ({
                     />
                   ))}
                 </div>
-                <button
+                {/* <button
                   type="button"
-                  onClick={() => {
-                    setTempColor(formData.color);
-                    setShowColorSelector(true);
-                  }}
+                  onClick={() => setShowColorSelector(true)}
                   className="absolute bottom-0 right-0 w-6 h-6 bg-pink-500 text-white rounded-full text-sm flex items-center justify-center hover:bg-pink-600"
                 >
                   +
-                </button>
+                </button> */}
               </div>
             </div>
             
@@ -227,87 +219,22 @@ const AddOshiForm = ({
       
       {/* アイコン選択モーダル */}
       {showIconSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-gray-800 mb-4">アイコンを選択</h3>
-            <div className="grid grid-cols-5 gap-3 mb-6">
-              {allIcons.map(icon => (
-                <button
-                  key={icon}
-                  type="button"
-                  onClick={() => setTempIcon(icon)}
-                  className={`p-3 text-2xl rounded-lg border-2 ${
-                    tempIcon === icon 
-                      ? 'border-pink-500 bg-pink-50' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowIconSelector(false)}
-                className="flex-1 p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({...formData, icon: tempIcon});
-                  setShowIconSelector(false);
-                }}
-                className="flex-1 p-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600"
-              >
-                決定
-              </button>
-            </div>
-          </div>
-        </div>
+        <IconSelector
+          currentIcon={formData.icon}
+          availableIcons={icons}
+          onIconChange={(newIcon) => setFormData({...formData, icon: newIcon})}
+          onClose={() => setShowIconSelector(false)}
+        />
       )}
       
       {/* カラー選択モーダル */}
       {showColorSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-60" onClick={(e) => e.stopPropagation()}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-gray-800 mb-4">カラーを選択</h3>
-            <div className="grid grid-cols-4 gap-3 mb-6">
-              {colors.map(color => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setTempColor(color)}
-                  className={`w-full h-12 rounded-lg border-4 ${
-                    tempColor === color ? 'border-gray-800' : 'border-gray-200'
-                  }`}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowColorSelector(false)}
-                className="flex-1 p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({...formData, color: tempColor});
-                  setShowColorSelector(false);
-                }}
-                className="flex-1 p-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600"
-              >
-                決定
-              </button>
-            </div>
-          </div>
-        </div>
+        <ColorSelector
+          currentColor={formData.color}
+          availableColors={colors}
+          onColorChange={(newColor) => setFormData({...formData, color: newColor})}
+          onClose={() => setShowColorSelector(false)}
+        />
       )}
     </div>
   );

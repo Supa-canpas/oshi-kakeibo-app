@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, Settings, Download, Upload, Share2, Bell, Calendar } from 'lucide-react';
+import IconSelector from '../forms/IconSelector';
+import ColorSelector from '../forms/ColorSelector';
 
 const SettingsScreen = ({
   oshiList,
@@ -19,6 +21,47 @@ const SettingsScreen = ({
   availableColors,
   setAvailableColors
 }) => {
+  const [showIconSelector, setShowIconSelector] = useState(false);
+  const [showColorSelector, setShowColorSelector] = useState(false);
+  const [currentIcon, setCurrentIcon] = useState('⭐');
+  const [currentColor, setCurrentColor] = useState('#ff69b4');
+  const [selectedIconIndex, setSelectedIconIndex] = useState(null);
+  const [selectedColorIndex, setSelectedColorIndex] = useState(null);
+  const [originalIcons, setOriginalIcons] = useState([]);
+  const [originalColors, setOriginalColors] = useState([]);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // 初期値を保存
+  React.useEffect(() => {
+    if (originalIcons.length === 0) {
+      setOriginalIcons([...availableIcons]);
+    }
+    if (originalColors.length === 0) {
+      setOriginalColors([...availableColors]);
+    }
+  }, [availableIcons, availableColors, originalIcons.length, originalColors.length]);
+
+  // 変更検知
+  React.useEffect(() => {
+    const iconsChanged = JSON.stringify(availableIcons) !== JSON.stringify(originalIcons);
+    const colorsChanged = JSON.stringify(availableColors) !== JSON.stringify(originalColors);
+    setHasChanges(iconsChanged || colorsChanged);
+  }, [availableIcons, availableColors, originalIcons, originalColors]);
+
+  // 変更を確定
+  const handleConfirmChanges = () => {
+    setOriginalIcons([...availableIcons]);
+    setOriginalColors([...availableColors]);
+    setHasChanges(false);
+    alert('設定を保存しました！');
+  };
+
+  // 変更をキャンセル
+  const handleCancelChanges = () => {
+    setAvailableIcons([...originalIcons]);
+    setAvailableColors([...originalColors]);
+    setHasChanges(false);
+  };
   const handleExportData = () => {
     const data = {
       oshiList,
@@ -199,23 +242,31 @@ const SettingsScreen = ({
                     newIcons[index] = e.target.value;
                     setAvailableIcons(newIcons);
                   }}
-                  className="w-full p-3 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  onClick={() => setSelectedIconIndex(index)}
+                  className={`w-full p-3 text-center text-2xl border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                    selectedIconIndex === index ? 'border-green-500 ring-2 ring-green-500' : 'border-gray-300'
+                  }`}
                   placeholder="絵文字"
                 />
               </div>
             ))}
           </div>
           <p className="text-sm text-gray-500">※ 絵文字を直接入力してください</p>
-          <button
+          {/* <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setAvailableIcons([...availableIcons, '🎀']);
+              if (selectedIconIndex !== null) {
+                setCurrentIcon(availableIcons[selectedIconIndex]);
+                setShowIconSelector(true);
+              } else {
+                alert('変更したいアイコンを選択してください');
+              }
             }}
-            className="absolute bottom-0 right-0 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 z-10"
+            className="absolute -bottom-3 -right-3 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 z-10"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
         
         {/* カラー設定 */}
@@ -232,26 +283,52 @@ const SettingsScreen = ({
                     newColors[index] = e.target.value;
                     setAvailableColors(newColors);
                   }}
-                  className="w-full h-12 border-2 border-gray-300 rounded-lg cursor-pointer"
+                  onClick={() => setSelectedColorIndex(index)}
+                  className="w-full h-12 border-2 rounded-lg cursor-pointer"
                 />
                 <div 
-                  className="absolute inset-0 rounded-lg border-2 border-gray-300 pointer-events-none"
+                  className={`absolute inset-0 rounded-lg border-2 pointer-events-none ${
+                    selectedColorIndex === index ? 'border-green-500 ring-2 ring-green-500' : 'border-gray-300'
+                  }`}
                   style={{ backgroundColor: color }}
                 />
               </div>
             ))}
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              setAvailableColors([...availableColors, '#ff69b4']);
+              if (selectedColorIndex !== null) {
+                setCurrentColor(availableColors[selectedColorIndex]);
+                setShowColorSelector(true);
+              } else {
+                alert('変更したいカラーを選択してください');
+              }
             }}
-            className="absolute bottom-0 right-0 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 z-10"
+            className="absolute -bottom-3 -right-3 p-2 bg-green-500 text-white rounded-full hover:bg-green-600 z-10"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
+        
+        {/* 変更確定ボタン */}
+        {hasChanges && (
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={handleCancelChanges}
+              className="flex-1 p-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              変更をキャンセル
+            </button>
+            <button
+              onClick={handleConfirmChanges}
+              className="flex-1 p-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:from-green-600 hover:to-teal-600"
+            >
+              変更を確定
+            </button>
+          </div>
+        )}
         
       </div>
 
@@ -310,6 +387,42 @@ const SettingsScreen = ({
           <div>開発者: Supa-canpas</div>
         </div>
       </div>
+
+      {/* アイコン選択モーダル */}
+      {showIconSelector && (
+        <IconSelector
+          currentIcon={currentIcon}
+          availableIcons={availableIcons}
+          onIconChange={(newIcon) => {
+            if (selectedIconIndex !== null) {
+              const newIcons = [...availableIcons];
+              newIcons[selectedIconIndex] = newIcon;
+              setAvailableIcons(newIcons);
+              setCurrentIcon(newIcon);
+              setSelectedIconIndex(null);
+            }
+          }}
+          onClose={() => setShowIconSelector(false)}
+        />
+      )}
+      
+      {/* カラー選択モーダル */}
+      {showColorSelector && (
+        <ColorSelector
+          currentColor={currentColor}
+          availableColors={availableColors}
+          onColorChange={(newColor) => {
+            if (selectedColorIndex !== null) {
+              const newColors = [...availableColors];
+              newColors[selectedColorIndex] = newColor;
+              setAvailableColors(newColors);
+              setCurrentColor(newColor);
+              setSelectedColorIndex(null);
+            }
+          }}
+          onClose={() => setShowColorSelector(false)}
+        />
+      )}
     </div>
   );
 };
