@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, Trash2, Settings, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Edit, Trash2, Settings, AlertTriangle, ArrowLeft, Plus } from 'lucide-react';
 
 const OshiDetailScreen = ({
   selectedOshi,
@@ -15,7 +15,8 @@ const OshiDetailScreen = ({
   expenseCategories,
   updateOshi,
   deleteOshi,
-  setCurrentScreen
+  setCurrentScreen,
+  setShowAddExpense
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -53,7 +54,7 @@ const OshiDetailScreen = ({
     'チケット代': '#FF6B6B',
     'グッズ代': '#4ECDC4',
     '遠征費': '#45B7D1',
-    '配信チケット代': '#96CEB4',
+    'ゲーム課金': '#96CEB4',
     'カフェ代': '#FFEAA7',
     'その他': '#DDA0DD'
   };
@@ -146,28 +147,37 @@ const OshiDetailScreen = ({
 
   return (
     <div className="space-y-6">
-      {/* 戻るボタン */}
-      <button
-        onClick={() => setCurrentScreen('home')}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        戻る
-      </button>
-
       {/* 推しヘッダー */}
       <div 
         className="rounded-2xl p-6 text-white relative overflow-hidden"
         style={{ backgroundColor: selectedOshi.color }}
       >
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl">
-            {selectedOshi.icon}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setCurrentScreen('home')}
+              className="flex items-center justify-center w-10 h-10 bg-white bg-opacity-20 rounded-full hover:bg-opacity-30 transition-all mr-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            
+            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl">
+              {selectedOshi.icon}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">{selectedOshi.name}</h1>
+              <p className="opacity-90">{selectedOshi.genre}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">{selectedOshi.name}</h1>
-            <p className="opacity-90">{selectedOshi.genre}</p>
-          </div>
+          
+          {/* 支出追加ボタン */}
+          <button
+            onClick={() => setShowAddExpense(selectedOshi.id)}
+            className="flex items-center justify-center w-10 h-10 bg-white bg-opacity-20 rounded-full hover:bg-opacity-30 transition-all"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </div>
         
         <div className="grid grid-cols-2 gap-4">

@@ -63,6 +63,7 @@ const OshiKakeiboApp = () => {
   const [expenses, setExpenses] = useState(initialData.expenses);
   const [budgets, setBudgets] = useState(initialData.budgets);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [preSelectedOshiId, setPreSelectedOshiId] = useState(null);
   const [showAddOshi, setShowAddOshi] = useState(false);
   const [showAddBudget, setShowAddBudget] = useState(false);
   const [selectedOshi, setSelectedOshi] = useState(null);
@@ -81,7 +82,7 @@ const OshiKakeiboApp = () => {
     birthdayReminder: true
   });
 
-  const expenseCategories = ['チケット代', 'グッズ代', '遠征費', '配信チケット代', 'カフェ代', 'その他'];
+  const expenseCategories = ['チケット代', 'グッズ代', '遠征費', 'ゲーム課金', 'カフェ代', 'その他'];
   const genres = ['アイドル', 'VTuber', 'アニメ', '俳優', '鉄道', 'ゲーム', 'その他'];
   const [availableIcons, setAvailableIcons] = useState(['🎭', '⭐', '🎤', '💕', '🌟', '🎵', '🎨', '💎']);
   const [availableColors, setAvailableColors] = useState(['#FF69B4', '#87CEEB', '#98FB98', '#FFB6C1', '#DDA0DD', '#F0E68C', '#FF7F50', '#40E0D0']);
@@ -363,7 +364,7 @@ const OshiKakeiboApp = () => {
         'チケット代': 30000,
         'グッズ代': 20000,
         '遠征費': 50000,
-        '配信チケット代': 10000,
+        'ゲーム課金': 10000,
         'カフェ代': 15000,
         'その他': 10000
       };
@@ -474,6 +475,10 @@ const OshiKakeiboApp = () => {
               updateOshi={updateOshi}
               deleteOshi={deleteOshi}
               setCurrentScreen={setCurrentScreen}
+              setShowAddExpense={(oshiId) => {
+                setShowAddExpense(true);
+                setPreSelectedOshiId(oshiId);
+              }}
             />
           )}
         </div>
@@ -486,6 +491,7 @@ const OshiKakeiboApp = () => {
             e.preventDefault();
             e.stopPropagation();
             setShowAddExpense(true);
+            setPreSelectedOshiId(null);
           }}
           className="fixed bottom-24 right-6 w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-2xl shadow-xl hover:shadow-2xl hover:scale-110 flex items-center justify-center z-50 touch-manipulation transition-all duration-200"
         >
@@ -555,10 +561,14 @@ const OshiKakeiboApp = () => {
           setExpenses={setExpenses}
           oshiList={oshiList}
           expenseCategories={expenseCategories}
-          setShowAddExpense={setShowAddExpense}
+          setShowAddExpense={(value) => {
+            setShowAddExpense(value);
+            setPreSelectedOshiId(null);
+          }}
           setShowCamera={setShowCamera}
           setSelectedPhoto={setSelectedPhoto}
           setShowPhotoViewer={setShowPhotoViewer}
+          preSelectedOshiId={preSelectedOshiId}
         />
       )}
       
