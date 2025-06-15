@@ -13,19 +13,55 @@ import { Analytics } from "@vercel/analytics/react";
 
 const OshiKakeiboApp = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
-  const [oshiList, setOshiList] = useState([
-    { id: 1, name: 'みくにゃん', genre: 'VTuber', color: '#FF69B4', icon: '🎭', birthday: '2025-07-15' },
-    { id: 2, name: 'アイドル太郎', genre: 'アイドル', color: '#87CEEB', icon: '⭐', birthday: '2025-08-20' }
-  ]);
-  const [expenses, setExpenses] = useState([
-    { id: 1, amount: 3500, date: '2025-06-10', category: 'グッズ代', oshiId: 1, note: 'アクリルスタンド', photo: null },
-    { id: 2, amount: 8000, date: '2025-06-08', category: 'チケット代', oshiId: 2, note: 'ライブチケット', photo: null },
-    { id: 3, amount: 12000, date: '2025-06-05', category: '遠征費', oshiId: 1, note: '交通費・宿泊費', photo: null }
-  ]);
-  const [budgets, setBudgets] = useState([
-    { id: 1, oshiId: 1, amount: 10000, period: '毎月' },
-    { id: 2, oshiId: 2, amount: 15000, period: '毎月' }
-  ]);
+  
+  // localStorage からデータを読み込む関数
+  const loadDataFromStorage = () => {
+    try {
+      const savedOshiList = localStorage.getItem('oshiKakeibo_oshiList');
+      const savedExpenses = localStorage.getItem('oshiKakeibo_expenses');
+      const savedBudgets = localStorage.getItem('oshiKakeibo_budgets');
+      
+      return {
+        oshiList: savedOshiList ? JSON.parse(savedOshiList) : [
+          { id: 1, name: 'みくにゃん', genre: 'VTuber', color: '#FF69B4', icon: '🎭', birthday: '2025-07-15' },
+          { id: 2, name: 'アイドル太郎', genre: 'アイドル', color: '#87CEEB', icon: '⭐', birthday: '2025-08-20' }
+        ],
+        expenses: savedExpenses ? JSON.parse(savedExpenses) : [
+          { id: 1, amount: 3500, date: '2025-06-10', category: 'グッズ代', oshiId: 1, note: 'アクリルスタンド', photo: null },
+          { id: 2, amount: 8000, date: '2025-06-08', category: 'チケット代', oshiId: 2, note: 'ライブチケット', photo: null },
+          { id: 3, amount: 12000, date: '2025-06-05', category: '遠征費', oshiId: 1, note: '交通費・宿泊費', photo: null }
+        ],
+        budgets: savedBudgets ? JSON.parse(savedBudgets) : [
+          { id: 1, oshiId: 1, amount: 10000, period: '毎月' },
+          { id: 2, oshiId: 2, amount: 15000, period: '毎月' }
+        ]
+      };
+    } catch (error) {
+      console.error('データの読み込みに失敗しました:', error);
+      return {
+        oshiList: [
+          { id: 1, name: 'みくにゃん', genre: 'VTuber', color: '#FF69B4', icon: '🎭', birthday: '2025-07-15' },
+          { id: 2, name: 'アイドル太郎', genre: 'アイドル', color: '#87CEEB', icon: '⭐', birthday: '2025-08-20' }
+        ],
+        expenses: [
+          { id: 1, amount: 3500, date: '2025-06-10', category: 'グッズ代', oshiId: 1, note: 'アクリルスタンド', photo: null },
+          { id: 2, amount: 8000, date: '2025-06-08', category: 'チケット代', oshiId: 2, note: 'ライブチケット', photo: null },
+          { id: 3, amount: 12000, date: '2025-06-05', category: '遠征費', oshiId: 1, note: '交通費・宿泊費', photo: null }
+        ],
+        budgets: [
+          { id: 1, oshiId: 1, amount: 10000, period: '毎月' },
+          { id: 2, oshiId: 2, amount: 15000, period: '毎月' }
+        ]
+      };
+    }
+  };
+
+  // 初期データを読み込み
+  const initialData = loadDataFromStorage();
+  
+  const [oshiList, setOshiList] = useState(initialData.oshiList);
+  const [expenses, setExpenses] = useState(initialData.expenses);
+  const [budgets, setBudgets] = useState(initialData.budgets);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddOshi, setShowAddOshi] = useState(false);
   const [showAddBudget, setShowAddBudget] = useState(false);
@@ -56,6 +92,22 @@ const OshiKakeiboApp = () => {
     purple: { primary: '#8A2BE2', secondary: '#DDA0DD', accent: '#E6E6FA' },
     green: { primary: '#32CD32', secondary: '#98FB98', accent: '#F0FFF0' }
   };
+
+  // データを localStorage に保存する関数
+  const saveDataToStorage = () => {
+    try {
+      localStorage.setItem('oshiKakeibo_oshiList', JSON.stringify(oshiList));
+      localStorage.setItem('oshiKakeibo_expenses', JSON.stringify(expenses));
+      localStorage.setItem('oshiKakeibo_budgets', JSON.stringify(budgets));
+    } catch (error) {
+      console.error('データの保存に失敗しました:', error);
+    }
+  };
+
+  // データが変更されたときに自動保存
+  useEffect(() => {
+    saveDataToStorage();
+  }, [oshiList, expenses, budgets]);
 
   // 予算超過チェックと月次処理
   useEffect(() => {

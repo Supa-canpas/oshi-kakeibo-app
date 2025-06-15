@@ -151,7 +151,7 @@ const AddExpenseForm = ({
             />
           </div>
           
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">写真</label>
             <div className="flex gap-2">
               <label className="flex-1 p-3 border border-gray-300 rounded-lg text-center cursor-pointer hover:bg-gray-50">
@@ -191,7 +191,7 @@ const AddExpenseForm = ({
                 </button>
               </div>
             )}
-          </div>
+          </div> */}
           
           <div className="flex gap-3 pt-4">
             <button
