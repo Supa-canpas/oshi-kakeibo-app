@@ -8,13 +8,14 @@ const AddExpenseForm = ({
   setShowAddExpense,
   setShowCamera,
   setSelectedPhoto,
-  setShowPhotoViewer
+  setShowPhotoViewer,
+  preSelectedOshiId = null
 }) => {
   const [formData, setFormData] = useState({
     amount: '',
     date: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
     category: '',
-    oshiId: '',
+    oshiId: preSelectedOshiId ? preSelectedOshiId.toString() : '',
     note: '',
     photo: null
   });
